@@ -21,6 +21,8 @@ function AnalyticsPage() {
   const { transactions, fetchTransactions } = useTransactionStore();
   const { t } = useTranslation();
 
+  const amount = Number(t.amount) || 0;
+
   // Завантажуємо транзакції при вході на сторінку
   useEffect(() => {
     fetchTransactions();
@@ -28,46 +30,45 @@ function AnalyticsPage() {
 
   // Динаміка по місяцях
   const monthlyData = useMemo(() => {
-    const grouped = transactions.reduce((acc, t) => {
-      const date = new Date(t.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
-      if (!acc[monthKey]) {
-        acc[monthKey] = { 
-          month: monthKey.slice(5) + "." + monthKey.slice(0,4), 
-          income: 0, 
-          expense: 0 
-        };
-      }
-      
-      if (t.type === "income") {
-        acc[monthKey].income += t.amount;
-      } else {
-        acc[monthKey].expense += t.amount;
-      }
-      return acc;
-    }, {} as Record<string, any>);
+  const grouped = transactions.reduce((acc, t) => {
+    const date = new Date(t.date);
+    const monthKey = ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')};
 
-    return Object.values(grouped).sort((a, b) => a.month.localeCompare(b.month));
-  }, [transactions]);
+    const amount = Number(t.amount) || 0;
+
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        month: monthKey.slice(5) + "." + monthKey.slice(0, 4),
+        income: 0,
+        expense: 0
+      };
+    }
+
+    if (t.type === "income") {
+      acc[monthKey].income += amount;
+    } else {
+      acc[monthKey].expense += amount;
+    }
+
+    return acc;
+  }, {} as Record<string, any>);
+
+  return Object.values(grouped).sort((a, b) =>
+    a.month.localeCompare(b.month)
+  );
+}, [transactions]);
 
   // Витрати по категоріях
   const categoryData = useMemo(() => {
-    const expenses = transactions.filter(t => t.type === "expense");
-    const byCategory = expenses.reduce((acc, t) => {
-      acc[t.category] = (acc[t.category] || 0) + t.amount;
-      return acc;
-    }, {} as Record<string, number>);
+  const expenses = transactions.filter(t => t.type === "expense");
 
-    return Object.entries(byCategory)
-      .map(([name, value], index) => ({ 
-        name, 
-        value, 
-        color: COLORS[index % COLORS.length] 
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [transactions]);
-
+  const byCategory = expenses.reduce((acc, t) => {
+    const amount = Number(t.amount)  0;
+    acc[t.category] = (acc[t.category] 
+ 0) + amount;
+    return acc;
+  }, {} as Record<string, number>);
+    
   const totalIncome = transactions
     .filter(t => t.type === "income")
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
