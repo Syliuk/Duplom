@@ -62,7 +62,14 @@ function DashboardPage() {
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
-
+  
+console.table(
+  transactions.map(t => ({
+    title: t.title,
+    date: t.date,
+    parsed: new Date(t.date).toISOString()
+  }))
+);
   return (
     <div className="space-y-8">
       <div>
