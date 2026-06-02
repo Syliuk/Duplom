@@ -18,6 +18,13 @@ function RecentTransactions({ transactions }: RecentTransactionsProps) {
       ) : (
         <div className="space-y-4">
           {transactions.map((transaction) => (
+          console.table(
+  transactions.map(t => ({
+    title: t.title,
+    date: t.date,
+    parsed: new Date(t.date).toISOString()
+  }))
+);
             <div
               key={transaction.id}
               className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700 last:border-0"
