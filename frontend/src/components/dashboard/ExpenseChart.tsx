@@ -17,13 +17,18 @@ function ExpenseChart() {
   const { t } = useTranslation();
 
   const expenseByCategory = transactions
-    .filter(t => t.type === "expense")
-    .reduce((acc, transaction) => {
-      const category = transaction.category;
-      acc[category] = (acc[category] || 0) + transaction.amount;
-      return acc;
-    }, {} as Record<string, number>);
+  .filter(t => t.type === "expense")
+  .reduce((acc, transaction) => {
+    const category = transaction.category  "Other";
+    const amount = Number(transaction.amount) 
+ 0;
 
+    acc[category] = (acc[category] || 0) + amount;
+
+    return acc;
+  }, {} as Record<string, number>);
+
+  
   const chartData = Object.entries(expenseByCategory).map(([name, value], index) => ({
     name,
     value,
@@ -43,7 +48,7 @@ function ExpenseChart() {
 
       {chartData.length > 0 ? (
         <div className="flex-1 min-h-0">   {/* Важливо! */}
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={chartData}
