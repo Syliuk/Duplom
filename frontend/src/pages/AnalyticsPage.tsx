@@ -32,7 +32,7 @@ function AnalyticsPage() {
   const monthlyData = useMemo(() => {
   const grouped = transactions.reduce((acc, t) => {
     const date = new Date(t.date);
-    const monthKey = ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')};
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
     const amount = Number(t.amount) || 0;
 
@@ -58,24 +58,31 @@ function AnalyticsPage() {
   );
 }, [transactions]);
 
-  // Витрати по категоріях
-  const categoryData = useMemo(() => {
+const categoryData = useMemo(() => {
   const expenses = transactions.filter(t => t.type === "expense");
 
   const byCategory = expenses.reduce((acc, t) => {
-    const amount = Number(t.amount)  0;
-    acc[t.category] = (acc[t.category] 
- 0) + amount;
+    const amount = Number(t.amount) || 0;
+    acc[t.category] = (acc[t.category] || 0) + amount;
     return acc;
   }, {} as Record<string, number>);
-    
-  const totalIncome = transactions
-    .filter(t => t.type === "income")
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  const totalExpense = transactions
-    .filter(t => t.type === "expense")
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  return Object.entries(byCategory)
+    .map(([name, value, index]) => ({
+      name,
+      value,
+      color: COLORS[index % COLORS.length],
+    }))
+    .sort((a, b) => b.value - a.value);
+}, [transactions]);
+
+const totalIncome = transactions
+  .filter(t => t.type === "income")
+  .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+const totalExpense = transactions
+  .filter(t => t.type === "expense")
+  .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const balance = totalIncome - totalExpense;
 
