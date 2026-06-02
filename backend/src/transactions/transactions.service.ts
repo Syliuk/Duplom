@@ -22,7 +22,9 @@ export class TransactionsService {
   async findAll(userId: number) {
     return this.transactionsRepository.find({
       where: { userId },
-      order: { date: 'DESC' },
+      order: { date: 'DESC',
+             id: 'DESC',
+             },
     });
   }
 
