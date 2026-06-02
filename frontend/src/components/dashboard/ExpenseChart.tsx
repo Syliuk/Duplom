@@ -19,12 +19,9 @@ function ExpenseChart() {
   const expenseByCategory = transactions
   .filter(t => t.type === "expense")
   .reduce((acc, transaction) => {
-    const category = transaction.category  "Other";
-    const amount = Number(transaction.amount) 
- 0;
-
+    const category = transaction.category || "Other";
+    const amount = Number(transaction.amount) || 0;
     acc[category] = (acc[category] || 0) + amount;
-
     return acc;
   }, {} as Record<string, number>);
 
