@@ -21,7 +21,7 @@ function AnalyticsPage() {
   const { transactions, fetchTransactions } = useTransactionStore();
   const { t } = useTranslation();
 
-  const amount = Number(t.amount) || 0;
+  
 
   // Завантажуємо транзакції при вході на сторінку
   useEffect(() => {
