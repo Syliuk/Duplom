@@ -68,7 +68,7 @@ const categoryData = useMemo(() => {
   }, {} as Record<string, number>);
 
   return Object.entries(byCategory)
-    .map(([name, value, index]) => ({
+    .map(([name, value], index) => ({
       name,
       value,
       color: COLORS[index % COLORS.length],
