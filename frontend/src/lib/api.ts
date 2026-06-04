@@ -32,6 +32,7 @@ export const api = {
   auth: {
     login: (data: any) => api.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
     register: (data: any) => api.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+    updateProfile: (data: any) => api.request('/auth/profile', { method: 'PATCH', body: JSON.stringify(data) }),
   },
 
   // Transactions
