@@ -27,27 +27,10 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
 
       updateProfile: async (data: { name?: string; email?: string }) => {
-        const token = localStorage.getItem('access_token');
-        if (!token) throw new Error("Не авторизований");
-
-        const response = await fetch('http://localhost:3001/auth/profile', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.message || 'Помилка оновлення профілю');
-        }
-
-        const result = await response.json();
+        const response = await api.auth.updateProfile(data);
 
         set((state) => ({
-          user: state.user ? { ...state.user, ...result.user } : null,
+          user: state.user ? { ...state.user, ...response.user } : null,
         }));
       },
 
