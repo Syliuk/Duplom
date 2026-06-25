@@ -52,7 +52,7 @@ function BudgetsPage() {
     return transactions
       .filter(t => t.type === "expense")
       .reduce((acc, t) => {
-        acc[t.category] = (acc[t.category] || 0) + t.amount;
+        acc[t.category] = (acc[t.category] || 0) + (Number(t.amount) || 0);
         return acc;
       }, {} as Record<string, number>);
   }, [transactions]);
@@ -163,8 +163,9 @@ function BudgetsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {budgets.map((budget) => {
           const spent = spentByCategory[budget.category] || 0;
-          const percentage = Math.min(Math.round((spent / budget.amount) * 100), 100);
-          const isOverBudget = spent > budget.amount;
+          const budgetAmount = Number(budget.amount) || 0;
+          const percentage = budgetAmount > 0 ? Math.min(Math.round((spent / budgetAmount) * 100), 100) : 0;
+          const isOverBudget = spent > budgetAmount;
 
           return (
             <div key={budget.id} className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
@@ -201,7 +202,7 @@ function BudgetsPage() {
                 <div className="flex justify-between text-sm mb-2">
                   <span>{t("budgets.spent")}</span>
                   <span className="font-medium">
-                    {formatCurrency(spent)} / {formatCurrency(budget.amount)}
+                    {formatCurrency(spent)} / {formatCurrency(budgetAmount)}
                   </span>
                 </div>
 
