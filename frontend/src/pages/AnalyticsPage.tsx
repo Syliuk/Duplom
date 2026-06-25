@@ -58,10 +58,28 @@ function AnalyticsPage() {
   );
 }, [transactions]);
 
-const categoryData = useMemo(() => {
+const expenseCategoryData = useMemo(() => {
   const expenses = transactions.filter(t => t.type === "expense");
 
   const byCategory = expenses.reduce((acc, t) => {
+    const amount = Number(t.amount) || 0;
+    acc[t.category] = (acc[t.category] || 0) + amount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(byCategory)
+    .map(([name, value], index) => ({
+      name,
+      value,
+      color: COLORS[index % COLORS.length],
+    }))
+    .sort((a, b) => b.value - a.value);
+}, [transactions]);
+
+const incomeCategoryData = useMemo(() => {
+  const incomes = transactions.filter(t => t.type === "income");
+
+  const byCategory = incomes.reduce((acc, t) => {
     const amount = Number(t.amount) || 0;
     acc[t.category] = (acc[t.category] || 0) + amount;
     return acc;
@@ -146,11 +164,11 @@ const totalExpense = transactions
         {/* Кругова діаграма витрат */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
           <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">{t("analytics.expenseStructure")}</h2>
-          {categoryData.length > 0 ? (
+          {expenseCategoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={340}>
               <PieChart>
                 <Pie
-                  data={categoryData}
+                  data={expenseCategoryData}
                   cx="50%"
                   cy="50%"
                   innerRadius={85}
@@ -158,7 +176,7 @@ const totalExpense = transactions
                   dataKey="value"
                   labelLine={false}
                 >
-                  {categoryData.map((entry, index) => (
+                  {expenseCategoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -176,8 +194,8 @@ const totalExpense = transactions
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
           <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">{t("analytics.topCategories")}</h2>
           <div className="space-y-5">
-            {categoryData.length > 0 ? (
-              categoryData.slice(0, 6).map((cat, index) => (
+            {expenseCategoryData.length > 0 ? (
+              expenseCategoryData.slice(0, 6).map((cat, index) => (
                 <div key={index} className="flex items-center gap-4">
                   <div 
                     className="w-4 h-4 rounded-full flex-shrink-0" 
@@ -194,6 +212,69 @@ const totalExpense = transactions
                         style={{ 
                           width: `${Math.round((cat.value / (totalExpense || 1)) * 100)}%`,
                           backgroundColor: cat.color 
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-slate-400 py-8 text-center">{t("analytics.noData")}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+          <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">{t("analytics.incomeStructure")}</h2>
+          {incomeCategoryData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={340}>
+              <PieChart>
+                <Pie
+                  data={incomeCategoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={85}
+                  outerRadius={130}
+                  dataKey="value"
+                  labelLine={false}
+                >
+                  {incomeCategoryData.map((entry, index) => (
+                    <Cell key={`income-cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[340px] flex items-center justify-center text-gray-400">
+              {t("analytics.noIncome")}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+          <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">{t("analytics.topIncomeCategories")}</h2>
+          <div className="space-y-5">
+            {incomeCategoryData.length > 0 ? (
+              incomeCategoryData.slice(0, 6).map((cat, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <div
+                    className="w-4 h-4 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-1">
+                      <span className="font-medium">{cat.name}</span>
+                      <span className="font-semibold">{formatCurrency(cat.value)}</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.round((cat.value / (totalIncome || 1)) * 100)}%`,
+                          backgroundColor: cat.color
                         }}
                       />
                     </div>
