@@ -46,7 +46,13 @@ export const api = {
 
   categories: {
     getAll: () => api.request('/categories'),
-    create: (data: any) => api.request('/categories', { method: 'POST', body: JSON.stringify(data) }),
+    create: (data: any) => {
+      const params = new URLSearchParams({
+        name: String(data.name ?? data.category ?? data.categoryName ?? ''),
+        type: String(data.type ?? 'expense'),
+      });
+      return api.request(`/categories?${params.toString()}`, { method: 'POST', body: JSON.stringify(data) });
+    },
   },
 
   // Budgets
