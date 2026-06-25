@@ -27,8 +27,18 @@ export const useCategoryStore = create<CategoryState>((set) => ({
   },
 
   addCategory: async (data) => {
+    const name = data.name.trim();
+    if (!name) {
+      throw new Error("Category name is required");
+    }
+
     try {
-      const created = await api.categories.create(data);
+      const created = await api.categories.create({
+        name,
+        category: name,
+        categoryName: name,
+        type: data.type,
+      });
       set((state) => ({
         categories: [...state.categories, created],
       }));
