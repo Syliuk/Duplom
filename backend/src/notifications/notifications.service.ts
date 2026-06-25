@@ -138,11 +138,27 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   private async sendOnce(user: User, key: string, type: NotificationLog['type'], subject: string, text: string) {
     const existing = await this.logsRepository.findOne({ where: { key } });
-    if (existing) return;
+    if (existing) {
+      this.logger.log(`Email notification already sent: ${key}`);
+      return;
+    }
 
-    const sent = await this.mailService.sendMail(user.email, subject, text);
-    if (!sent) return;
+    this.logger.log(`Sending email notification: ${key} to ${user.email}`);
+
+    let sent = false;
+    try {
+      sent = await this.mailService.sendMail(user.email, subject, text);
+    } catch (error) {
+      this.logger.error(`Email notification failed: ${key}`, error);
+      throw error;
+    }
+
+    if (!sent) {
+      this.logger.warn(`Email notification skipped because SMTP is not configured: ${key}`);
+      return;
+    }
 
     await this.logsRepository.save(this.logsRepository.create({ userId: user.id, key, type }));
+    this.logger.log(`Email notification sent and logged: ${key}`);
   }
 }
