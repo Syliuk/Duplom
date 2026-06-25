@@ -1,63 +1,45 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-interface BrevoErrorResponse {
-  code?: string;
-  message?: string;
-}
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private readonly apiKey: string | undefined;
-  private readonly fromEmail: string | undefined;
-  private readonly fromName: string;
+  private resend: Resend | null = null;
 
   constructor(private readonly configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('BREVO_API_KEY');
-    this.fromEmail = this.configService.get<string>('BREVO_FROM_EMAIL');
-    this.fromName = this.configService.get<string>('BREVO_FROM_NAME') || 'FinanceFlow';
+    const apiKey = this.configService.get<string>('RESEND_API_KEY');
 
-    if (!this.apiKey || !this.fromEmail) {
-      this.logger.warn('Brevo is not configured. Email notifications will be skipped.');
+    if (!apiKey) {
+      this.logger.warn('Resend is not configured. Email notifications will be skipped.');
+      return;
     }
+
+    this.resend = new Resend(apiKey);
   }
 
   async sendMail(to: string, subject: string, text: string) {
-    if (!this.apiKey || !this.fromEmail) return false;
+    if (!this.resend) return false;
 
-    this.logger.log(`Sending email via Brevo to ${to}`);
+    const from =
+      this.configService.get<string>('RESEND_FROM') ||
+      'FinanceFlow <onboarding@resend.dev>';
 
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'api-key': this.apiKey,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        sender: {
-          name: this.fromName,
-          email: this.fromEmail,
-        },
-        to: [{ email: to }],
-        subject,
-        textContent: text,
-      }),
+    this.logger.log(`Sending email via Resend to ${to}`);
+
+    const { error } = await this.resend.emails.send({
+      from,
+      to,
+      subject,
+      text,
     });
 
-    if (!response.ok) {
-      const errorBody = await response.json().catch(async () => {
-        const message = await response.text().catch(() => '');
-        return { message };
-      }) as BrevoErrorResponse;
-
-      const message = errorBody.message || `Brevo API error: ${response.status}`;
-      this.logger.error(`Brevo failed to send email to ${to}: ${message}`);
-      throw new Error(message);
+    if (error) {
+      this.logger.error(`Resend failed to send email to ${to}`, error);
+      throw new Error(error.message);
     }
 
-    this.logger.log(`Brevo accepted email to ${to}`);
+    this.logger.log(`Resend accepted email to ${to}`);
     return true;
   }
 }
