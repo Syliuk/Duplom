@@ -6,8 +6,8 @@ import { formatTranslation, useTranslation } from "../../lib/i18n";
 import { ExternalLink, Copy, Check } from "lucide-react";
 
 export default function MonoIntegration() {
-  const { monoToken, setMonoToken, removeMonoToken } = useMonoStore();
-  const { addTransaction } = useTransactionStore();
+  const { monoToken, setMonoToken, removeMonoToken, fetchClientInfo, fetchStatement } = useMonoStore();
+  const { addTransaction, fetchTransactions } = useTransactionStore();
   const { success, error } = useToast();
   const { t } = useTranslation();
 
@@ -43,40 +43,40 @@ export default function MonoIntegration() {
     loadingRef.current = true;
     setLoading(true);
     try {
-      const clientInfo = await fetch('https://api.monobank.ua/personal/client-info', {
-        headers: { 'X-Token': monoToken }
-      }).then(r => r.json());
+      await fetchClientInfo();
+      const { accounts } = useMonoStore.getState();
 
-      if (clientInfo.error) throw new Error(clientInfo.errorDescription || t("mono.invalidToken"));
+      if (accounts.length === 0) {
+        error(t("transactions.accountsNotFound"));
+        return;
+      }
 
-      const accounts = clientInfo.accounts || [];
       let importedCount = 0;
 
       for (const acc of accounts) {
-        const from = Math.floor(Date.now() / 1000) - 90 * 24 * 60 * 60; // 90 днів
-        const to = Math.floor(Date.now() / 1000);
+        try {
+          const statements = await fetchStatement(acc.id, 31);
 
-        const statements = await fetch(
-          `https://api.monobank.ua/personal/statement/${acc.id}/${from}/${to}`,
-          { headers: { 'X-Token': monoToken } }
-        ).then(r => r.json());
-
-        for (const s of statements) {
-          await addTransaction({
-            title: s.description || t("mono.operation"),
-            amount: Math.abs(s.amount / 100),
-            type: s.amount > 0 ? "income" : "expense",
-            category: "Mono Import",
-            date: new Date(s.time * 1000).toISOString().split('T')[0],
-            note: s.comment || "",
-          });
-          importedCount++;
+          for (const s of statements) {
+            await addTransaction({
+              title: s.description || t("transactions.monoOperation"),
+              amount: Math.abs(s.amount / 100),
+              type: s.amount > 0 ? "income" : "expense",
+              category: "Mono Import",
+              date: new Date(s.time * 1000).toISOString().split("T")[0],
+              note: s.comment || "",
+            });
+            importedCount++;
+          }
+        } catch (err: any) {
+          console.warn(`Monobank account import failed (${acc.id}):`, err.message);
         }
       }
 
-      success(formatTranslation(t("mono.imported"), { count: importedCount }));
+      await fetchTransactions();
+      success(formatTranslation(t("transactions.importSuccess"), { count: importedCount }));
     } catch (err: any) {
-      error(err.message || t("mono.importError"));
+      error(err.message || t("transactions.importError"));
     } finally {
       loadingRef.current = false;
       setLoading(false);
@@ -148,7 +148,7 @@ export default function MonoIntegration() {
             disabled={loading}
             className="w-full bg-green-600 text-white py-4 rounded-2xl font-semibold hover:bg-green-700 disabled:opacity-70"
           >
-            {loading ? t("mono.importing") : t("mono.importButton")}
+            {loading ? t("transactions.importing") : t("transactions.importMono")}
           </button>
 
           <button
