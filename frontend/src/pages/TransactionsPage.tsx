@@ -33,6 +33,7 @@ function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "income" | "expense">("all");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -98,6 +99,7 @@ function TransactionsPage() {
     setSearchTerm("");
     setFilterType("all");
     setFilterCategory("all");
+    setSortOrder("desc");
     setDateFrom("");
     setDateTo("");
   };
@@ -117,8 +119,12 @@ function TransactionsPage() {
 
         return matchesSearch && matchesType && matchesCategory && matchesDateFrom && matchesDateTo;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, searchTerm, filterType, filterCategory, dateFrom, dateTo]);
+      .sort((a, b) => {
+        const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
+        const sortedDateDiff = sortOrder === "asc" ? dateDiff : -dateDiff;
+        return sortedDateDiff || (sortOrder === "asc" ? a.id - b.id : b.id - a.id);
+      });
+  }, [transactions, searchTerm, filterType, filterCategory, sortOrder, dateFrom, dateTo]);
 
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
@@ -179,6 +185,8 @@ function TransactionsPage() {
         setFilterType={setFilterType}
         filterCategory={filterCategory}
         setFilterCategory={setFilterCategory}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
         dateFrom={dateFrom}
         setDateFrom={setDateFrom}
         dateTo={dateTo}
