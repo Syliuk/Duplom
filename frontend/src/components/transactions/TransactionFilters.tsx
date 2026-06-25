@@ -8,6 +8,8 @@ interface TransactionFiltersProps {
   setFilterType: (value: "all" | "income" | "expense") => void;
   filterCategory: string;
   setFilterCategory: (value: string) => void;
+  sortOrder: "desc" | "asc";
+  setSortOrder: (value: "desc" | "asc") => void;
   dateFrom: string;
   setDateFrom: (value: string) => void;
   dateTo: string;
@@ -22,6 +24,8 @@ function TransactionFilters({
   setFilterType,
   filterCategory,
   setFilterCategory,
+  sortOrder,
+  setSortOrder,
   dateFrom,
   setDateFrom,
   dateTo,
@@ -88,7 +92,19 @@ function TransactionFilters({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 mt-5">
+      <div className="grid gap-4 md:grid-cols-3 mt-5">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-200">Сортування за датою</label>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "desc" | "asc")}
+            className="w-full bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-300 dark:border-slate-700 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="desc">Спочатку новіші</option>
+            <option value="asc">Спочатку старіші</option>
+          </select>
+        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-slate-200">{t("transactions.dateFrom")}</label>
           <input
