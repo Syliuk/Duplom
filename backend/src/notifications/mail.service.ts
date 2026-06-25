@@ -18,19 +18,27 @@ export class MailService {
       return;
     }
 
-    this.transporter = nodemailer.createTransport({
+    const transportOptions: any = {
       host,
       port,
+      family: 4,
       secure: port === 465,
       auth: { user, pass },
-    });
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
+    };
+
+    this.transporter = nodemailer.createTransport(transportOptions);
   }
 
   async sendMail(to: string, subject: string, text: string) {
     if (!this.transporter) return false;
 
     const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('SMTP_USER');
+    this.logger.log(`Sending email via SMTP to ${to}`);
     await this.transporter.sendMail({ from, to, subject, text });
+    this.logger.log(`SMTP accepted email to ${to}`);
     return true;
   }
 }
