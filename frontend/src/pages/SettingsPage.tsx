@@ -111,10 +111,14 @@ function SettingsPage() {
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-slate-700">
         <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">{t("settings.profile")}</h2>
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center">
-            <span className="text-4xl text-white font-medium">
-              {user?.name?.[0]?.toUpperCase() || "U"}
-            </span>
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center overflow-hidden">
+            {user?.profilePhoto ? (
+              <img src={user.profilePhoto} alt={user.name || t("settings.profile")} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-4xl text-white font-medium">
+                {user?.name?.[0]?.toUpperCase() || "U"}
+              </span>
+            )}
           </div>
           <div>
             <p className="font-semibold text-lg text-gray-900 dark:text-white">{user?.name}</p>
