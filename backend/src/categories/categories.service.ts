@@ -35,19 +35,23 @@ export class CategoriesService {
     });
   }
 
-  async create(userId: number, dto: CreateCategoryDto) {
-    const name = dto.name?.trim();
+  async create(userId: number, dto: CreateCategoryDto | string | any) {
+    const rawName = typeof dto === 'string'
+      ? dto
+      : dto?.name ?? dto?.title ?? dto?.category ?? dto?.categoryName;
+    const name = String(rawName ?? '').trim();
+    const type = typeof dto === 'string' ? 'expense' : dto?.type;
 
     if (!name) {
       throw new BadRequestException('Category name is required');
     }
 
-    if (!['income', 'expense'].includes(dto.type)) {
+    if (!['income', 'expense'].includes(type)) {
       throw new BadRequestException('Category type is invalid');
     }
 
     const existing = await this.categoriesRepository.findOne({
-      where: { userId, type: dto.type, name },
+      where: { userId, type, name },
     });
 
     if (existing) {
@@ -56,7 +60,7 @@ export class CategoriesService {
 
     const category = this.categoriesRepository.create({
       userId,
-      type: dto.type,
+      type,
       name,
     });
 
