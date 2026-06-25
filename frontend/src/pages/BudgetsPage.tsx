@@ -10,7 +10,7 @@ import { Plus, Trash2, Edit2 } from "lucide-react";
 import type { Budget } from "../types/budget";
 
 function BudgetsPage() {
-  const { transactions } = useTransactionStore();
+  const { transactions, fetchTransactions } = useTransactionStore();
   const { budgets, fetchBudgets, deleteBudget, updateBudget } = useBudgetStore();
   const { categories, fetchCategories, addCategory, deleteCategory } = useCategoryStore();
   const { success, error } = useToast();
@@ -26,9 +26,10 @@ function BudgetsPage() {
 
   // Завантажуємо бюджети при вході на сторінку
   useEffect(() => {
+    fetchTransactions();
     fetchBudgets();
     fetchCategories();
-  }, [fetchBudgets, fetchCategories]);
+  }, [fetchTransactions, fetchBudgets, fetchCategories]);
 
   const expenseCategoryOptions = getMergedCategoriesForType("expense", categories);
   const customExpenseCategories = categories.filter(
